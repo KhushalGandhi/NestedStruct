@@ -5,19 +5,20 @@ import (
 	"gorm.io/gorm"
 )
 
-type Address struct {
-	IDClient int    `gorm:"unique" json:"-"` // foreign key
-	State    string `json:"state"`
-	City     string `json:"city"`
-	Gli      int    `json:"gli"`
-}
-
 type CallingTasks struct {
-	ClientID  int     `json:"-"`
+	ID        uint    `gorm:"primary key:autoIncrement" json:"id"`
 	Firstname string  `json:"firstname"`
 	Lastname  string  `json:"lastname"`
-	Details   Address `gorm:"foreignKey:ClientID;references:IDClient" json:"details"`
 	Email     string  `json:"email"`
+	ClientID  int     `json:"-"`
+	Address   Address `gorm:"foreignKey:ClientID;references:ID" json:"address"`
+}
+
+type Address struct {
+	ID     uint   `gorm:"unique" json:"-"` // foreign key
+	State  string `json:"state"`
+	City   string `json:"city"`
+	Street string `json:"street"`
 }
 
 var DB *gorm.DB
