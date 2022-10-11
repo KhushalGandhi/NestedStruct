@@ -21,7 +21,7 @@ func RegisterRoutes() *gin.Engine {
 	router.GET("/callg1/:la", getusersbylastname)
 
 	router.DELETE("/calld/:id", DeleteTasks)
-	router.DELETE("/calld1/:address", DeleteTasksbyaddress)
+	router.DELETE("/calld1/:city/:first_name", DeleteTasksbytwopara)
 	router.DELETE("/calld2/:first_name", DeleteTasksbyfirstname)
 	router.DELETE("/calld3/:last_name", DeleteTaskslastname)
 	router.DELETE("/calld4/:email", DeleteTasksbyemail)
@@ -43,15 +43,15 @@ func RegisterRoutes() *gin.Engine {
 	Email     string `json:"email"`
 }*/
 func GetTasks(c *gin.Context) {
-	var get []models.CallingTasks
-	models.DB.Preload("Address").Find(&get)
+	var get []models.Info
+	models.DB.Preload("Person").Preload("Address").Find(&get)
 
 	c.IndentedJSON(http.StatusOK, gin.H{"called upon": get})
 }
 
 func getUsersByEmail(c *gin.Context) {
-	var email []models.CallingTasks
-	res := models.DB.Preload("Address").Where("email =?", c.Param("email")).Find(&email)
+	var email []models.Info
+	res := models.DB.Preload("Address").Preload("Person").Where("email =?", c.Param("email")).Find(&email)
 
 	if res.RowsAffected == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
@@ -62,8 +62,8 @@ func getUsersByEmail(c *gin.Context) {
 }
 
 func getusersbyfirstname(c *gin.Context) {
-	var firstname []models.CallingTasks
-	res := models.DB.Preload("Address").Where("first_name = ?", c.Param("firstname")).Find(&firstname)
+	var firstname []models.Info
+	res := models.DB.Preload("Address").Preload("Person").Where("first_name = ?", c.Param("firstname")).Find(&firstname)
 	if res.RowsAffected == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
@@ -73,8 +73,8 @@ func getusersbyfirstname(c *gin.Context) {
 }
 
 func getusersbyaddress(c *gin.Context) {
-	var address []models.CallingTasks
-	res := models.DB.Preload("Address").Where("address = ?", c.Param("address")).Find(&address)
+	var address []models.Info
+	res := models.DB.Preload("Address").Preload("Person").Where("address = ?", c.Param("address")).Find(&address)
 	if res.RowsAffected == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
@@ -84,8 +84,8 @@ func getusersbyaddress(c *gin.Context) {
 }
 
 func getusersbylastname(c *gin.Context) {
-	var lastname []models.CallingTasks
-	res := models.DB.Preload("Address").Where("last_name = ?", c.Param("last_name")).Find(&lastname)
+	var lastname []models.Info
+	res := models.DB.Preload("Address").Preload("Person").Where("last_name = ?", c.Param("last_name")).Find(&lastname)
 	if res.RowsAffected == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
@@ -95,20 +95,20 @@ func getusersbylastname(c *gin.Context) {
 }
 
 func PostTasks(c *gin.Context) {
-	var post models.CallingTasks
+	var post models.Info
 	if err := c.ShouldBindJSON(&post); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	//kw := models.CallingTasks{Data: &todo.Data}
-	models.DB.Preload("Address").Create(&post)
+	models.DB.Preload("Address").Preload("Person").Create(&post)
 	//c.IndentedJSON(http.StatusOK, gin.H{"message": "ho gya"})
 	GetTasks(c)
 }
 
 func DeleteTasks(c *gin.Context) {
-	var del models.CallingTasks
-	if err := models.DB.Preload("Address").Where("id = ?", c.Param("id")).First(&del).Error; err != nil {
+	var del models.Info
+	if err := models.DB.Preload("Address").Preload("Person").Where("id = ?", c.Param("id")).First(&del).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
 	}
@@ -117,20 +117,20 @@ func DeleteTasks(c *gin.Context) {
 	GetTasks(c)
 }
 
-func DeleteTasksbyaddress(c *gin.Context) {
-	var deladdress models.CallingTasks
-	if err := models.DB.Preload("Address").Where("state = ?", c.Param("address")).Find(&deladdress).Error; err != nil {
+func DeleteTasksbytwopara(c *gin.Context) {
+	var Delbytwopara models.Info
+	if err := models.DB.Preload("Address").Preload("Person").Where("city = ? and first_name = ?", c.Param("city"), c.Param("first_name")).Find(&Delbytwopara).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
 	}
-	models.DB.Delete(&deladdress)
+	models.DB.Delete(&Delbytwopara)
 
 	GetTasks(c)
 }
 
 func DeleteTasksbyfirstname(c *gin.Context) {
-	var delfir models.CallingTasks
-	if err := models.DB.Preload("Address").Where("first_name = ?", c.Param("first_name")).First(&delfir).Error; err != nil {
+	var delfir models.Info
+	if err := models.DB.Preload("Address").Preload("Person").Where("first_name = ?", c.Param("first_name")).First(&delfir).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
 	}
@@ -140,8 +140,8 @@ func DeleteTasksbyfirstname(c *gin.Context) {
 }
 
 func DeleteTaskslastname(c *gin.Context) {
-	var dellas models.CallingTasks
-	if err := models.DB.Preload("Address").Where("last_name = ?", c.Param("last_name")).First(&dellas).Error; err != nil {
+	var dellas models.Info
+	if err := models.DB.Preload("Address").Preload("Person").Where("last_name = ?", c.Param("last_name")).First(&dellas).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
 	}
@@ -151,8 +151,8 @@ func DeleteTaskslastname(c *gin.Context) {
 }
 
 func DeleteTasksbyemail(c *gin.Context) {
-	var delem models.CallingTasks
-	if err := models.DB.Preload("Address").Where("email = ?", c.Param("email")).First(&delem).Error; err != nil {
+	var delem models.Info
+	if err := models.DB.Preload("Address").Preload("Person").Where("email = ?", c.Param("email")).First(&delem).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
 	}
@@ -162,13 +162,13 @@ func DeleteTasksbyemail(c *gin.Context) {
 }
 func UpdateTasks(c *gin.Context) {
 
-	var change models.CallingTasks
-	var input models.CallingTasks
+	var change models.Info
+	var input models.Info
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := models.DB.Model(&change).Preload("Address").Where("id = ?", c.Param("id")).First(&change).Error; err != nil {
+	if err := models.DB.Model(&change).Preload("Address").Preload("Person").Where("id = ?", c.Param("id")).First(&change).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
 	}
@@ -178,14 +178,14 @@ func UpdateTasks(c *gin.Context) {
 
 func UpdateTasksbyaddress(c *gin.Context) {
 
-	var changebyad models.CallingTasks
-	if err := models.DB.Preload("Address").Where("address = ?", c.Param("address")).First(&changebyad).Error; err != nil {
+	var changebyad models.Info
+	if err := models.DB.Preload("Address").Preload("Person").Where("address = ?", c.Param("address")).First(&changebyad).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
 	}
 
 	// Validate input
-	var inputbyad models.CallingTasks
+	var inputbyad models.Info
 	if err := c.ShouldBindJSON(&inputbyad); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -196,14 +196,14 @@ func UpdateTasksbyaddress(c *gin.Context) {
 
 func UpdateTasksbyfirstname(c *gin.Context) {
 
-	var changebyf models.CallingTasks
-	if err := models.DB.Preload("Address").Where("first_name = ?", c.Param("first_name")).First(&changebyf).Error; err != nil {
+	var changebyf models.Info
+	if err := models.DB.Preload("Address").Preload("Person").Where("first_name = ?", c.Param("first_name")).First(&changebyf).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
 	}
 
 	// Validate input
-	var inputbyf models.CallingTasks
+	var inputbyf models.Info
 	if err := c.ShouldBindJSON(&inputbyf); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -215,14 +215,14 @@ func UpdateTasksbyfirstname(c *gin.Context) {
 
 func UpdateTasksbylastname(c *gin.Context) {
 
-	var changebyl models.CallingTasks
-	if err := models.DB.Preload("Address").Where("last_name = ?", c.Param("last_name")).First(&changebyl).Error; err != nil {
+	var changebyl models.Info
+	if err := models.DB.Preload("Address").Preload("Person").Where("last_name = ?", c.Param("last_name")).First(&changebyl).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
 	}
 
 	// Validate input
-	var inputbyl models.CallingTasks
+	var inputbyl models.Info
 	if err := c.ShouldBindJSON(&inputbyl); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -235,14 +235,14 @@ func UpdateTasksbylastname(c *gin.Context) {
 
 func UpdateTasksbyemail(c *gin.Context) {
 
-	var changebye models.CallingTasks
-	if err := models.DB.Preload("Address").Where("email = ?", c.Param("email")).First(&changebye).Error; err != nil {
+	var changebye models.Info
+	if err := models.DB.Preload("Address").Preload("Person").Where("email = ?", c.Param("email")).First(&changebye).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
 	}
 
 	// Validate input
-	var inpute models.CallingTasks
+	var inpute models.Info
 	if err := c.ShouldBindJSON(&inpute); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
