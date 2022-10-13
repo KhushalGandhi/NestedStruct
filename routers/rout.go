@@ -19,6 +19,7 @@ func RegisterRoutes() *gin.Engine {
 	router.GET("/getusersbyfirstname/:firstname", getusersbyfirstname)
 	router.GET("/getbyaddress/:address", getusersbyaddress)
 	router.GET("/callg1/:la", getusersbylastname)
+	router.GET("/getusersbytwoparameters/:first_name/:city", Getusersbytwopara)
 
 	router.DELETE("/calld/:id", DeleteTasks)
 	router.DELETE("/calld1/:city/:first_name", DeleteTasksbytwopara)
@@ -91,6 +92,17 @@ func getusersbylastname(c *gin.Context) {
 		return
 	} else {
 		c.IndentedJSON(http.StatusOK, gin.H{"dbdata": lastname})
+	}
+}
+
+func Getusersbytwopara(c *gin.Context) {
+	var getbytwo []models.Info
+	res := models.DB.Preload("Address").Preload("Person").Raw(`SELECT i.*,p.*,a.* FROM info as i LEFT JOIN Person as p ON i.ClientID = p.ID LEFT JOIN Address as a ON i.ClientID = a.id Where p.firstname = ? and a.city = ? `, c.Param("firstname"), c.Param("city")).Find(&getbytwo)
+	if res.RowsAffected == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+		return
+	} else {
+		c.IndentedJSON(http.StatusOK, gin.H{"dbdata": getbytwo})
 	}
 }
 
