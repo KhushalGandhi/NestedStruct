@@ -14,8 +14,8 @@ type Info struct {
 
 	ClientID int     `json:"-" postgressql:"type:int REFERENCES ID ON DELETE CASCADE"`
 	PersonID int     `json:"-" postgressql:"type:int REFERENCES ID ON DELETE CASCADE"`
-	Person   Person  `gorm:"foreignkey:PersonID"` //;references:ID;` //constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"person"`
-	Address  Address `gorm:"foreignKey:ClientID"` //;references:ID;` //constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"address"`
+	Person   Person  `gorm:"foreignkey:PersonID;references:ID;"` //constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"person"`
+	Address  Address `gorm:"foreignKey:ClientID;references:ID"`  //constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"address"`
 }
 
 type Address struct {
