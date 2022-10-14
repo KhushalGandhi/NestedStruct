@@ -19,7 +19,7 @@ func RegisterRoutes() *gin.Engine {
 	router.GET("/getusersbyfirstname/:firstname", getusersbyfirstname)
 	router.GET("/getbyaddress/:address", getusersbyaddress)
 	router.GET("/callg1/:la", getusersbylastname)
-	router.GET("/getusersbytwoparameters/:first_name/:city", Getusersbytwopara)
+	router.GET("/getusersbytwoparameters/:firstname/:city", Getusersbytwopara)
 
 	router.DELETE("/calld/:id", DeleteTasks)
 	router.DELETE("/calld1/:city/:first_name", DeleteTasksbytwopara)
@@ -97,7 +97,11 @@ func getusersbylastname(c *gin.Context) {
 
 func Getusersbytwopara(c *gin.Context) {
 	var getbytwo []models.Info
-	res := models.DB.Preload("Address").Preload("Person").Raw(`SELECT i.*,p.*,a.* FROM info as i LEFT JOIN Person as p ON i.ClientID = p.ID LEFT JOIN Address as a ON i.ClientID = a.id Where p.firstname = ? and a.city = ? `, c.Param("firstname"), c.Param("city")).Find(&getbytwo)
+	res := models.DB.Preload("Person").Preload("Address").Raw(`SELECT * FROM infos as i LEFT JOIN people as p ON i.person_id = p.id LEFT JOIN addresses as a ON i.client_id = a.id Where p.firstname = ? and a.city = ? `, c.Param("firstname"), c.Param("city")).Find(&getbytwo)
+
+	/*err := db.Table("employee").Select("Info.id, Person.PersonID, Address.AddressID").Joins("JOIN Info on Info.ID = Person.PersonID").Joins("JOIN Info on Info.ID = Address.A").Find(&results).Error; err != nil {
+	return err, "" */
+
 	if res.RowsAffected == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
@@ -131,7 +135,7 @@ func DeleteTasks(c *gin.Context) {
 
 func DeleteTasksbytwopara(c *gin.Context) {
 	var Delbytwopara models.Info
-	if err := models.DB.Preload("Address").Preload("Person", "city = ? and firstname = ?", c.Param("city"), c.Param("first_name")).Find(&Delbytwopara).Error; err != nil {
+	if err := models.DB.Preload("Address").Preload("Person").Raw(`SELECT * FROM infos as i LEFT JOIN people as p ON i.person_id = p.id LEFT JOIN addresses as a ON i.client_id = a.id "city = ? and firstname = ?"`, c.Param("city"), c.Param("first_name")).Find(&Delbytwopara).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
 	}
